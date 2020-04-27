@@ -65,8 +65,21 @@ static void * fake_decoder(void * ptr)
     // lock & wait until the last frame has been consumed
     // Your code here:
 
-
+    // sleep(1);
+    pthread_mutex_lock(&lock);
+    while (consumed == false)
+    {
+      pthread_cond_wait(&cond,&lock);
+      //code that is equivalent to pthread_cond_wait(&cond,&lock);
+      // pthread_mutex_unlock(&lock);
+      // usleep(10);
+      // pthread_mutex_lock(&lock);
+    }
     next_frame();
+    consumed = false;
+    
+    pthread_mutex_unlock(&lock);
+    
 
     // mark frame as newly rendered
     // Your code here:
@@ -82,9 +95,11 @@ static void * renderer(void * ptr)
     usleep(500000); // update every 0.5s
 
     // just lock
+    pthread_mutex_lock(&lock);
     // Your code here:
-
-
+    
+    
+    
     // print on screen don't change these
     reset_term();
     for (int i = 0; i < nbytes; i++)
@@ -93,6 +108,9 @@ static void * renderer(void * ptr)
 
     // mark frame as consumed and wake up the waiting thread
     // Your code here:
+    consumed = true;
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&lock);
 
 
   }
